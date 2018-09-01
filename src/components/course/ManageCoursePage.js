@@ -4,8 +4,10 @@ import {bindActionCreators} from 'redux';
 import * as courseActions from '../../actions/courseActions';
 import CourseForm from "./CourseForm";
 import toastr from 'toastr';
+import {authorsFormattedForDropdown} from "../../selectors/selectors";
 
-class ManageCoursePage extends Component {
+//Exporting both, connected per default, and plain, unconnected component for Test
+export class ManageCoursePage extends Component {
 
   constructor(props, context) {
     super(props, context);
@@ -32,8 +34,24 @@ class ManageCoursePage extends Component {
     return this.setState({course: course});
   }
 
+  courseFormIsValid() {
+    let valid = true;
+    let errors = {};
+    if(this.state.course.title.length < 5) {
+      errors.title = 'Title must be at least 5 characters.';
+      valid = false;
+    }
+    this.setState({errors:errors});
+    return valid;
+  }
+
   saveCourse(event) {
     event.preventDefault();
+
+    if(!this.courseFormIsValid()) {
+      return;
+    }
+
     this.setState({saving: true});
     //Wait with redirect after new course is saved to the store
     //Otherwise user will see new line pop up in course list
@@ -88,16 +106,10 @@ function mapStateToProps(state, ownProps) {
   if (courseId && state.courses.length > 0) {
     course = getCourseById(state.courses, courseId);
   }
-  const authorsFormattedForDropdown = state.authors.map(author => {
-    return {
-      value: author.id,
-      text: author.firstName + ' ' + author.lastName
-    };
-  });
 
   return {
     course: course,
-    authors: authorsFormattedForDropdown
+    authors: authorsFormattedForDropdown(state.authors)
   };
 }
 
